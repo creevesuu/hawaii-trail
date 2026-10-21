@@ -1,1 +1,139 @@
-:root{font-family:Georgia,serif;color:#f6eed9;background:#091f31}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 5%,#17677b 0%,#123d56 35%,#091f31 80%);min-height:100vh}main{max-width:900px;margin:auto;padding:24px}header{text-align:center;padding:32px 0}h1{font-size:clamp(3rem,9vw,5.5rem);margin:8px 0;color:#ffe3a1}header p{line-height:1.5}.eyebrow{letter-spacing:.22em;font:700 .7rem system-ui;color:#89e3db}section{background:#0a2738dd;border:1px solid #6ca6a5;border-radius:18px;padding:26px;box-shadow:0 20px 70px #0006}.ocean{height:190px;border-radius:12px;background:linear-gradient(#f8b97b 0%,#f9d3a4 31%,#337c9a 32%,#0b4b67 70%,#072e4c);display:grid;place-items:center;font-size:90px;text-shadow:0 8px 14px #0029;margin-bottom:22px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{background:#163d4c;padding:12px;border-radius:9px;text-align:center;font:600 .9rem system-ui}.stat strong{display:block;font-size:1.3rem;color:#ffe3a1;margin-top:5px}.story{font-size:1.15rem;line-height:1.65;min-height:100px}h2{color:#ffe3a1}button{cursor:pointer;width:100%;padding:15px;margin:7px 0;border:1px solid #9ad9c6;border-radius:10px;background:#185d66;color:white;font:600 1rem system-ui;text-align:left}button:hover,button:focus{background:#268a86;outline:2px solid #ffe3a1}button:disabled{opacity:.5;cursor:default}.message{color:#ffe3a1;font-style:italic}footer{text-align:center;opacity:.7;font:12px/1.6 system-ui;padding:24px}@media(max-width:550px){.stats{grid-template-columns:repeat(2,1fr)}section{padding:15px}.ocean{height:140px}}
+:root { font-family: system-ui, sans-serif; color: #f6eed9; background: #091f31; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(ellipse at 50% 5%, #17677b 0%, #123d56 35%, #091f31 80%); }
+main { width: 100%; max-width: 1240px; min-height: 100svh; margin: auto; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+h1 { font: 700 2rem/1.15 Georgia, serif; margin: 3px 0 0; color: #ffe3a1; }
+.tagline { max-width: 350px; margin: 0; color: #c7ddd7; font-size: 13px; line-height: 1.5; text-align: right; }
+.eyebrow { margin: 0; letter-spacing: .12em; font: 700 10px/1.5 system-ui; color: #89e3db; }
+#game { background: #0a2738ee; border: 1px solid #6ca6a5; border-radius: 16px; padding: 18px; box-shadow: 0 20px 70px #0005; }
+.game-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.voyage-panel { display: grid; gap: 12px; min-width: 0; }
+.decision-panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+h2 { color: #ffe3a1; font: 700 1.65rem/1.2 Georgia, serif; margin: 5px 0 8px; }
+#event-title:focus { outline: none; }
+.story { font: 1rem/1.45 Georgia, serif; margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.stat { background: #163d4c; padding: 9px 10px; border-radius: 8px; font-size: 11px; color: #cbe0d9; }
+.stat strong { display: block; font: 700 22px/1.3 system-ui; color: #ffe3a1; }
+.stat small { font-size: 11px; font-weight: 400; color: #b1cbc6; }
+.stat meter { display: block; width: 100%; height: 5px; margin-top: 4px; accent-color: #8ed2b4; }
+.stat meter::-webkit-meter-bar { border: 0; background: #0b2c3c; }
+.stat meter::-webkit-meter-optimum-value { background: #8ed2b4; }
+.stat meter::-webkit-meter-suboptimum-value, .stat meter::-webkit-meter-even-less-good-value { background: #edb478; }
+.stat-low { box-shadow: inset 0 0 0 1px #d69c69; }
+.stat-low strong { color: #ffc199; }
+.resource-guide { color: #b1cbc6; font-size: 11px; line-height: 1.45; margin: 0; }
+#choices { display: grid; gap: 7px; }
+button { cursor: pointer; width: 100%; min-height: 44px; padding: 10px 12px; margin: 0; border: 1px solid #669e99; border-radius: 9px; background: #18545e; color: #fff5dc; font: 600 14px/1.3 system-ui; text-align: left; }
+button:hover { background: #206e73; border-color: #a8ded0; }
+button:focus-visible { outline: 2px solid #ffe3a1; outline-offset: 2px; }
+.choice-label { display: block; }
+.effects { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 5px; font: 500 11px/1.4 system-ui; }
+.gain { color: #b7eacf; }
+.cost { color: #f4c5a8; }
+.neutral { color: #c0d5d2; }
+.ends-voyage { color: #ffceb1; font-weight: 700; }
+.feedback { padding: 11px 12px; border: 1px solid #496e72; border-left: 3px solid #d8ba7b; border-radius: 8px; background: #102f40; }
+.feedback .eyebrow { color: #dec991; letter-spacing: .04em; }
+.feedback p { color: #dce8e0; font-size: 12px; line-height: 1.5; margin: 5px 0 0; }
+.feedback strong { color: #ffe3a1; }
+.welcome { align-self: center; }
+.instructions { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.55; }
+.instructions li + li { margin-top: 8px; }
+footer { text-align: center; color: #a9c1bf; font: 10px/1.5 system-ui; }
+
+/* The scene and route use the same progress as the game's Distance stat. */
+.journey { margin: 0 0 24px; overflow: hidden; border: 1px solid #75a9a5; border-radius: 12px; background: #0b2c3c; }
+.journey-scene { position: relative; overflow: hidden; background: #498995; }
+.journey-art { display: block; width: 100%; height: auto; }
+.journey-heading { position: absolute; z-index: 1; inset: 16px 20px auto; display: flex; justify-content: space-between; gap: 12px; color: #fff3d3; font: 700 10px/1.5 system-ui; letter-spacing: .14em; text-shadow: 0 1px 5px #082e40; }
+.journey-conditions { position: absolute; bottom: 12px; left: 18px; padding: 5px 9px; border-radius: 4px; color: #e4eee0; background: #092d43d9; font: 500 11px/1.4 system-ui; }
+.sky-top { stop-color: #5c9ca7; }
+.sky-bottom { stop-color: #d7e6cb; }
+.scene-clouds { opacity: .65; }
+.scene-stars, .scene-storm-clouds, .scene-rain { display: none; }
+[data-weather="dawn"] .sky-top { stop-color: #6a96ad; }
+[data-weather="dawn"] .sky-bottom { stop-color: #f2cea1; }
+[data-weather="sunset"] .sky-top { stop-color: #5d6d99; }
+[data-weather="sunset"] .sky-bottom { stop-color: #e8ae89; }
+[data-weather="night"] .sky-top { stop-color: #0d233e; }
+[data-weather="night"] .sky-bottom { stop-color: #365b72; }
+[data-weather="night"] .scene-stars { display: block; }
+[data-weather="night"] .scene-sun { display: none; }
+[data-weather="night"] .scene-clouds { fill: #53677d; opacity: .9; }
+[data-weather="night"] .scene-clouds path:nth-child(2) { transform: translate(120px, -10px); }
+[data-weather="storm"] .sky-top { stop-color: #25394f; }
+[data-weather="storm"] .sky-bottom { stop-color: #758b97; }
+[data-weather="storm"] .scene-storm-clouds, [data-weather="storm"] .scene-rain { display: block; }
+[data-weather="storm"] .scene-sun, [data-weather="storm"] .scene-clouds { display: none; }
+[data-weather="storm"] .journey-art { filter: saturate(.75); }
+.journey-canoe { transform: translateX(var(--canoe-to)); animation: sail-forward 1.6s ease-in-out both; }
+.canoe-bob { animation: canoe-bob .8s ease-in-out 2; transform-box: fill-box; transform-origin: center; }
+.moving-waves { animation: ocean-drift 1.6s linear; }
+.journey figcaption { padding: 16px 20px 14px; }
+.journey-caption { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font: 12px/1.5 system-ui; }
+.journey-caption strong { color: #ffe3a1; font-size: 14px; }
+.journey-caption > span { color: #c1d9d4; white-space: nowrap; }
+.journey-route { position: relative; height: 4px; margin: 17px 4px 12px; border-radius: 2px; background: repeating-linear-gradient(to right, #63898c 0 5px, #254b59 5px 10px); }
+.route-fill { display: block; height: 100%; width: var(--route-to); background: #a9d7bb; animation: route-fill 1.6s ease-in-out both; }
+.route-marker { position: absolute; left: var(--route-to); top: 50%; width: 18px; height: 18px; display: grid; place-items: center; transform: translate(-50%, -50%); color: #082e40; background: #ffe3a1; border-radius: 50%; font: 16px/1 system-ui; animation: route-marker 1.6s ease-in-out both; }
+.journey-labels { display: flex; justify-content: space-between; gap: 8px; color: #bfd1cc; font: 10px/1.5 system-ui; }
+.journey-labels span:nth-child(2) { color: #9bbab8; }
+.journey-stopped .journey-canoe, .journey-stopped .canoe-bob, .journey-stopped .moving-waves, .journey-stopped .route-fill, .journey-stopped .route-marker { animation: none; }
+@keyframes sail-forward { from { transform: translateX(var(--canoe-from)); } to { transform: translateX(var(--canoe-to)); } }
+@keyframes canoe-bob { 50% { transform: translateY(-3px) rotate(-1deg); } }
+@keyframes ocean-drift { from { transform: translateX(0); } to { transform: translateX(-160px); } }
+@keyframes route-fill { from { width: var(--route-from); } to { width: var(--route-to); } }
+@keyframes route-marker { from { left: var(--route-from); } to { left: var(--route-to); } }
+@media (max-width: 550px) {
+  .journey-heading { inset: 10px 12px auto; font-size: 8px; letter-spacing: .07em; }
+  .journey-conditions { left: 10px; bottom: 6px; font-size: 9px; padding: 3px 6px; }
+  .journey figcaption { padding: 12px; }
+  .journey-caption { font-size: 10px; }
+  .journey-caption strong { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey *, .journey *::before, .journey *::after { animation: none !important; }
+}
+
+/* Keep the scene, all choices, and learning feedback on a laptop viewport. */
+.voyage-panel .journey { margin: 0; }
+.journey figcaption { padding: 10px 14px; }
+.journey-route { margin-top: 13px; margin-bottom: 10px; }
+.journey-caption { font-size: 11px; }
+.journey-caption strong { font-size: 12px; }
+
+@media (min-width: 900px) and (max-height: 680px) {
+  main { padding: 10px 16px; gap: 8px; }
+  h1 { font-size: 1.8rem; }
+  #game { padding: 14px; }
+  .game-layout { gap: 18px; }
+  .voyage-panel, .decision-panel { gap: 9px; }
+  h2 { font-size: 1.5rem; margin-bottom: 6px; }
+  button { padding: 9px 11px; }
+  .feedback { padding: 9px 11px; }
+}
+@media (max-width: 899px) {
+  main { max-width: 680px; min-height: 100svh; justify-content: flex-start; padding: 14px; }
+  header { gap: 12px; }
+  h1 { font-size: 1.7rem; }
+  .tagline { max-width: 220px; font-size: 11px; }
+  #game { padding: 14px; }
+  .game-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+}
+@media (max-width: 550px) {
+  main { padding: 10px; }
+  header { display: block; }
+  h1 { font-size: 1.65rem; }
+  .tagline { max-width: none; text-align: left; margin-top: 5px; }
+  #game { padding: 10px; }
+  .stats { gap: 5px; }
+  .stat { padding: 8px 6px; font-size: 10px; }
+  .stat strong { font-size: 20px; }
+  .journey-caption { flex-wrap: wrap; gap: 3px 10px; }
+  .journey-caption strong { font-size: 11px; }
+  .journey figcaption { padding: 8px 10px; }
+  .journey-labels { font-size: 9px; }
+  .journey-heading { font-size: 7px; }
+}
