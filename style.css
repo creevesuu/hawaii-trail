@@ -1,1 +1,55 @@
 :root{font-family:Georgia,serif;color:#f6eed9;background:#091f31}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 5%,#17677b 0%,#123d56 35%,#091f31 80%);min-height:100vh}main{max-width:900px;margin:auto;padding:24px}header{text-align:center;padding:32px 0}h1{font-size:clamp(3rem,9vw,5.5rem);margin:8px 0;color:#ffe3a1}header p{line-height:1.5}.eyebrow{letter-spacing:.22em;font:700 .7rem system-ui;color:#89e3db}section{background:#0a2738dd;border:1px solid #6ca6a5;border-radius:18px;padding:26px;box-shadow:0 20px 70px #0006}.ocean{height:190px;border-radius:12px;background:linear-gradient(#f8b97b 0%,#f9d3a4 31%,#337c9a 32%,#0b4b67 70%,#072e4c);display:grid;place-items:center;font-size:90px;text-shadow:0 8px 14px #0029;margin-bottom:22px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{background:#163d4c;padding:12px;border-radius:9px;text-align:center;font:600 .9rem system-ui}.stat strong{display:block;font-size:1.3rem;color:#ffe3a1;margin-top:5px}.story{font-size:1.15rem;line-height:1.65;min-height:100px}h2{color:#ffe3a1}button{cursor:pointer;width:100%;padding:15px;margin:7px 0;border:1px solid #9ad9c6;border-radius:10px;background:#185d66;color:white;font:600 1rem system-ui;text-align:left}button:hover,button:focus{background:#268a86;outline:2px solid #ffe3a1}button:disabled{opacity:.5;cursor:default}.message{color:#ffe3a1;font-style:italic}footer{text-align:center;opacity:.7;font:12px/1.6 system-ui;padding:24px}@media(max-width:550px){.stats{grid-template-columns:repeat(2,1fr)}section{padding:15px}.ocean{height:140px}}
+
+/* The scene and route use the same progress as the game's Distance stat. */
+.journey { margin: 0 0 24px; overflow: hidden; border: 1px solid #75a9a5; border-radius: 12px; background: #0b2c3c; }
+.journey-scene { position: relative; overflow: hidden; background: #498995; }
+.journey-art { display: block; width: 100%; height: auto; }
+.journey-heading { position: absolute; z-index: 1; inset: 16px 20px auto; display: flex; justify-content: space-between; gap: 12px; color: #fff3d3; font: 700 10px/1.5 system-ui; letter-spacing: .14em; text-shadow: 0 1px 5px #082e40; }
+.journey-conditions { position: absolute; bottom: 12px; left: 18px; padding: 5px 9px; border-radius: 4px; color: #e4eee0; background: #092d43d9; font: 500 11px/1.4 system-ui; }
+.sky-top { stop-color: #5c9ca7; }
+.sky-bottom { stop-color: #d7e6cb; }
+.scene-clouds { opacity: .65; }
+.scene-stars, .scene-storm-clouds, .scene-rain { display: none; }
+[data-weather="dawn"] .sky-top { stop-color: #6a96ad; }
+[data-weather="dawn"] .sky-bottom { stop-color: #f2cea1; }
+[data-weather="sunset"] .sky-top { stop-color: #5d6d99; }
+[data-weather="sunset"] .sky-bottom { stop-color: #e8ae89; }
+[data-weather="night"] .sky-top { stop-color: #0d233e; }
+[data-weather="night"] .sky-bottom { stop-color: #365b72; }
+[data-weather="night"] .scene-stars { display: block; }
+[data-weather="night"] .scene-sun { display: none; }
+[data-weather="night"] .scene-clouds { fill: #53677d; opacity: .9; }
+[data-weather="night"] .scene-clouds path:nth-child(2) { transform: translate(120px, -10px); }
+[data-weather="storm"] .sky-top { stop-color: #25394f; }
+[data-weather="storm"] .sky-bottom { stop-color: #758b97; }
+[data-weather="storm"] .scene-storm-clouds, [data-weather="storm"] .scene-rain { display: block; }
+[data-weather="storm"] .scene-sun, [data-weather="storm"] .scene-clouds { display: none; }
+[data-weather="storm"] .journey-art { filter: saturate(.75); }
+.journey-canoe { transform: translateX(var(--canoe-to)); animation: sail-forward 1.6s ease-in-out both; }
+.canoe-bob { animation: canoe-bob .8s ease-in-out 2; transform-box: fill-box; transform-origin: center; }
+.moving-waves { animation: ocean-drift 1.6s linear; }
+.journey figcaption { padding: 16px 20px 14px; }
+.journey-caption { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font: 12px/1.5 system-ui; }
+.journey-caption strong { color: #ffe3a1; font-size: 14px; }
+.journey-caption > span { color: #c1d9d4; white-space: nowrap; }
+.journey-route { position: relative; height: 4px; margin: 17px 4px 12px; border-radius: 2px; background: repeating-linear-gradient(to right, #63898c 0 5px, #254b59 5px 10px); }
+.route-fill { display: block; height: 100%; width: var(--route-to); background: #a9d7bb; animation: route-fill 1.6s ease-in-out both; }
+.route-marker { position: absolute; left: var(--route-to); top: 50%; width: 18px; height: 18px; display: grid; place-items: center; transform: translate(-50%, -50%); color: #082e40; background: #ffe3a1; border-radius: 50%; font: 16px/1 system-ui; animation: route-marker 1.6s ease-in-out both; }
+.journey-labels { display: flex; justify-content: space-between; gap: 8px; color: #bfd1cc; font: 10px/1.5 system-ui; }
+.journey-labels span:nth-child(2) { color: #9bbab8; }
+.journey-stopped .journey-canoe, .journey-stopped .canoe-bob, .journey-stopped .moving-waves, .journey-stopped .route-fill, .journey-stopped .route-marker { animation: none; }
+@keyframes sail-forward { from { transform: translateX(var(--canoe-from)); } to { transform: translateX(var(--canoe-to)); } }
+@keyframes canoe-bob { 50% { transform: translateY(-3px) rotate(-1deg); } }
+@keyframes ocean-drift { from { transform: translateX(0); } to { transform: translateX(-160px); } }
+@keyframes route-fill { from { width: var(--route-from); } to { width: var(--route-to); } }
+@keyframes route-marker { from { left: var(--route-from); } to { left: var(--route-to); } }
+@media (max-width: 550px) {
+  .journey-heading { inset: 10px 12px auto; font-size: 8px; letter-spacing: .07em; }
+  .journey-conditions { left: 10px; bottom: 6px; font-size: 9px; padding: 3px 6px; }
+  .journey figcaption { padding: 12px; }
+  .journey-caption { font-size: 10px; }
+  .journey-caption strong { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey *, .journey *::before, .journey *::after { animation: none !important; }
+}
