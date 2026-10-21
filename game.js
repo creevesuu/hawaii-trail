@@ -1,14 +1,150 @@
 const el = document.getElementById('game');
+const RESOURCE_MAX = 15;
+const VOYAGE_DISTANCE = 19;
+const resources = [
+  ['food', 'Food'], ['water', 'Water'], ['spirit', 'Crew spirit'], ['hull', 'Hull']
+];
 let s;
-const events = [{title:'Clouds over the stars',text:'A thick cloud bank hides the stars that guide your canoe. The swells still carry clues.',choices:[['Follow the ocean swells',0,0,0,1,"Ocean swells can help you hold a course when stars are hidden, especially when you have already observed their direction."],['Wait for the sky to clear',-1,-1,0,2,"Waiting for visible stars can reduce uncertainty about your heading, but the crew still needs supplies while you wait."],['Guess a direction',0,0,-2,0,"Choosing a heading without checking natural clues risks taking the canoe off course."]]},{title:'A school of fish',text:'Flying fish scatter across the waves. Your crew spots signs of life beneath the surface.',choices:[['Fish together',2,-1,1,1,"Sharing the work of fishing helps the crew gather food and cooperate."],['Keep sailing',-1,0,0,2,"Continuing the voyage saves time, but passes up a chance to replenish food."],['Spend the day fishing',3,-2,0,0,"Longer fishing stops may provide more food, but they also take time and drinking water."]]},{title:'The squall',text:'Dark clouds race toward the canoe. Wind tears at the sail.',choices:[['Reef the sail and ride it out',-1,-1,0,2,"Reefing means reducing sail area so strong winds put less strain on the canoe."],['Race ahead of the storm',0,-2,-2,0,"Trying to outrun a storm can expose the crew and canoe to stronger winds; speed alone does not ensure safety."],['Turn into the swells',-1,0,-1,1,"How a canoe meets the swells affects its motion and stability; steering requires watching the waves and adjusting."]]},{title:'A tired crew',text:'The voyage has been long. Someone asks whether you can spare more drinking water.',choices:[['Share extra water',-2,0,2,1,"Sharing extra water meets an immediate crew need, but leaves less for the rest of the voyage."],['Keep strict rations',0,0,-1,2,"Rationing aims to make supplies last; explaining the reason helps the crew understand a difficult limit."],['Rest and tell stories',-1,-1,2,1,"Rest and storytelling give people time to recover and strengthen their sense of shared purpose."]]},{title:'Birds at sunrise',text:'At dawn, seabirds fly across the horizon. Their flight may point toward land.',choices:[['Follow their morning flight',-1,0,1,2,"Some seabirds fly out to feed in the morning, so following them may lead away from land; bird type and time of day matter."],['Trust your current heading',-1,0,0,1,"Holding a heading avoids reacting to a single uncertain clue, but navigators keep checking other signs."],['Circle to watch their return',-2,-1,0,2,"Watching where land-roosting birds return later in the day can offer a land clue, though not all seabirds return to land each day."]]},{title:'A leak in the hull',text:'A seam lets seawater into the canoe. Everyone looks to you.',choices:[['Repair it immediately',-1,-2,1,2,"Repairing a leak addresses the source of incoming water before the problem grows."],['Bail water and continue',-1,0,-1,0,"Bailing removes water already inside the canoe, but the leak still needs repair."],['Ask the crew to solve it together',-1,-1,2,1,"Inviting the crew to solve a problem draws on their skills and builds shared responsibility."]]}];
+
+// Effects are net changes for one turn, including food and water consumed.
+// Named fields keep supplies, morale, damage, and travel independent.
+const events = [
+  {
+    title: 'Clouds over the stars',
+    text: 'A thick cloud bank hides the stars that guide your canoe. The swells still carry clues.',
+    choices: [
+      {
+        label: 'Follow the ocean swells',
+        effects: {food: -1, water: -1, spirit: 0, hull: 0, progress: 2},
+        lesson: 'Ocean swells can help you hold a course when stars are hidden, especially when you have already observed their direction.'
+      },
+      {
+        label: 'Wait for the sky to clear',
+        effects: {food: -1, water: -1, spirit: 1, hull: 0, progress: 0},
+        lesson: 'Waiting for visible stars can restore confidence in your heading, but the crew still uses supplies while you wait.'
+      },
+      {
+        label: 'Guess a direction',
+        effects: {food: -1, water: -1, spirit: -1, hull: 0, progress: 1},
+        lesson: 'Choosing a heading without checking natural clues risks taking the canoe off course and losing the crew’s confidence.'
+      }
+    ]
+  },
+  {
+    title: 'A school of fish',
+    text: 'Flying fish scatter across the waves. Your crew spots signs of life beneath the surface.',
+    choices: [
+      {
+        label: 'Fish together',
+        effects: {food: 3, water: -1, spirit: 1, hull: 0, progress: 1},
+        lesson: 'Sharing the work of fishing helps the crew gather food and cooperate, while leaving some time for sailing.'
+      },
+      {
+        label: 'Keep sailing',
+        effects: {food: -1, water: -1, spirit: 0, hull: 0, progress: 2},
+        lesson: 'Continuing the voyage saves time, but passes up a chance to replenish food.'
+      },
+      {
+        label: 'Spend the day fishing',
+        effects: {food: 5, water: -2, spirit: 0, hull: 0, progress: 0},
+        lesson: 'A longer fishing stop can provide more food, but uses drinking water and leaves no time for travel this turn.'
+      }
+    ]
+  },
+  {
+    title: 'The squall',
+    text: 'Dark clouds race toward the canoe. Wind tears at the sail, and rain begins to fall.',
+    choices: [
+      {
+        label: 'Reef the sail and ride it out',
+        effects: {food: -1, water: -1, spirit: 0, hull: 0, progress: 2},
+        lesson: 'Reefing means reducing sail area so strong winds put less strain on the canoe.'
+      },
+      {
+        label: 'Race ahead of the storm',
+        effects: {food: -1, water: -2, spirit: -2, hull: -3, progress: 3},
+        lesson: 'Pushing for speed in a storm can strain the canoe and exhaust the crew. Faster travel comes with a cost.'
+      },
+      {
+        label: 'Reduce sail and collect rain',
+        effects: {food: -1, water: 4, spirit: 0, hull: -1, progress: 1},
+        lesson: 'Collecting rain can replenish fresh water. Here it slows travel and leaves the canoe exposed to rough water for longer.'
+      }
+    ]
+  },
+  {
+    title: 'A tired crew',
+    text: 'The voyage has been long. Someone asks whether you can spare more drinking water.',
+    choices: [
+      {
+        label: 'Share extra water',
+        effects: {food: -1, water: -2, spirit: 2, hull: 0, progress: 2},
+        lesson: 'Sharing extra water supports the crew’s morale, but leaves less drinking water for the rest of the voyage.'
+      },
+      {
+        label: 'Keep strict rations',
+        effects: {food: -1, water: 0, spirit: -1, hull: 0, progress: 2},
+        lesson: 'Strict rations conserve water in this simplified game, but can lower morale. Explaining the reason helps the crew understand the limit.'
+      },
+      {
+        label: 'Rest and tell stories',
+        effects: {food: -1, water: -1, spirit: 3, hull: 0, progress: 0},
+        lesson: 'Rest and storytelling help people recover and strengthen their shared purpose. You trade travel time for crew spirit.'
+      }
+    ]
+  },
+  {
+    title: 'Birds at sunrise',
+    text: 'At dawn, seabirds fly across the horizon. Their flight may offer clues about land.',
+    choices: [
+      {
+        label: 'Follow their morning flight',
+        effects: {food: -1, water: -2, spirit: -1, hull: 0, progress: 1},
+        lesson: 'Some seabirds fly out to feed in the morning, so following them may lead away from land. Bird type and time of day matter.'
+      },
+      {
+        label: 'Trust your current heading',
+        effects: {food: -1, water: -1, spirit: 0, hull: 0, progress: 2},
+        lesson: 'Holding a heading avoids reacting to a single uncertain clue, but navigators keep checking other signs.'
+      },
+      {
+        label: 'Circle to watch their return',
+        effects: {food: -2, water: -1, spirit: 1, hull: 0, progress: 2},
+        lesson: 'Watching land-roosting birds return later can give a more useful land clue. Not all seabirds return to land each day.'
+      }
+    ]
+  },
+  {
+    title: 'A leak in the hull',
+    text: 'A seam lets seawater into the canoe. Everyone looks to you.',
+    choices: [
+      {
+        label: 'Repair it immediately',
+        effects: {food: -1, water: -1, spirit: 0, hull: 3, progress: 0},
+        lesson: 'Repairing a leak improves the hull by addressing the source of incoming water. Stopping for repairs costs travel time.'
+      },
+      {
+        label: 'Bail water and continue',
+        effects: {food: -1, water: -1, spirit: -1, hull: -2, progress: 2},
+        lesson: 'Bailing removes seawater from inside the canoe; it does not refill drinking water. The unrepaired leak keeps weakening the hull.'
+      },
+      {
+        label: 'Ask the crew to solve it together',
+        effects: {food: -1, water: -2, spirit: 1, hull: 2, progress: 1},
+        lesson: 'Sharing repair work draws on the crew’s skills and builds responsibility, while leaving some time to keep sailing.'
+      }
+    ]
+  }
+];
+
 // An illustrated journey, not a geographic map or a historical route.
 function journey(fromProgress = s ? s.progress : 0) {
-  const progress = Math.max(0, Math.min(1, (s ? s.progress : 0) / 19));
-  const previous = Math.max(0, Math.min(1, fromProgress / 19));
+  const progress = Math.max(0, Math.min(1, (s ? s.progress : 0) / VOYAGE_DISTANCE));
+  const previous = Math.max(0, Math.min(1, fromProgress / VOYAGE_DISTANCE));
   const percent = Math.round(progress * 100);
   const event = s ? (s.day - 1) % events.length : -1;
   const weather = s && s.done === 'won' ? 'day' : ['night', 'day', 'storm', 'sunset', 'dawn', 'day'][event] || 'dawn';
-  const stopped = !s || !!s.done;
+  const stopped = !s || !!s.done || progress === previous;
   const phase = !s ? 'Ready to set sail' : s.done === 'won' ? 'Landfall in Hawaiʻi' : s.done === 'lost' ? 'Voyage ended' : progress < .25 ? 'Leaving familiar shores' : progress < .7 ? 'Across the open Pacific' : progress < .9 ? 'The far horizon' : 'Land on the horizon';
   const conditions = {night: 'Clouds hide the stars', day: 'Ocean swells', storm: 'A squall approaches', sunset: 'Evening at sea', dawn: 'First light'};
   const landScale = .25 + Math.max(0, (progress - .7) / .3) * .75;
@@ -53,60 +189,96 @@ function journey(fromProgress = s ? s.progress : 0) {
       <div class="journey-conditions">${s && s.done ? phase : conditions[weather]}</div>
     </div>
     <figcaption>
-      <div class="journey-caption"><strong>${phase}</strong><span>${percent}% of voyage</span></div>
+      <div class="journey-caption"><strong>${phase}</strong><span>${s ? s.progress : 0} / ${VOYAGE_DISTANCE} travel · ${percent}%</span></div>
       <div class="journey-route" role="progressbar" aria-label="Voyage progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span class="route-fill"></span><span class="route-marker" aria-hidden="true">▴</span></div>
       <div class="journey-labels"><span>Departure</span><span>Illustrated route</span><span>Hawaiʻi</span></div>
     </figcaption>
   </figure>`;
 }
 
+
 function start() {
-  s = {day: 1, food: 12, water: 12, spirit: 7, hull: 8, progress: 0, log: 'Your double-hulled canoe leaves familiar shores. Ahead lies the vast Pacific.', done: false};
+  s = {day: 1, food: 12, water: 12, spirit: 7, hull: 8, progress: 0, lastChoice: null, done: false, ending: ''};
   render();
+  focusEvent();
 }
 
-function clamp(n) { return Math.max(0, Math.min(15, n)); }
+function clamp(n) { return Math.max(0, Math.min(RESOURCE_MAX, n)); }
+
+// Both button previews and actual turns use this calculation, including caps.
+function outcome(choice) {
+  const next = {}, changes = {};
+  for (const [key] of resources) {
+    next[key] = clamp(s[key] + choice.effects[key]);
+    changes[key] = next[key] - s[key];
+  }
+  next.progress = Math.min(VOYAGE_DISTANCE, s.progress + choice.effects.progress);
+  changes.progress = next.progress - s.progress;
+  return {next, changes};
+}
 
 function choose(i) {
-  if (s.done) return;
-  const e = events[(s.day - 1) % events.length], c = e.choices[i];
+  if (!s || s.done) return;
+  const choice = events[(s.day - 1) % events.length].choices[i];
+  if (!choice) return;
   const previousProgress = s.progress;
-  s.food = clamp(s.food + c[1]);
-  s.water = clamp(s.water + c[0]);
-  s.spirit = clamp(s.spirit + c[2]);
-  s.hull = clamp(s.hull + c[3]);
-  s.progress += 1 + Math.max(0, c[4] || 0);
-  s.log = 'You chose: ' + c[0] + '. What this teaches: ' + c[5];
+  const {next, changes} = outcome(choice);
+  Object.assign(s, next);
+  s.lastChoice = {label: choice.label, lesson: choice.lesson, changes};
   s.day++;
-  if (s.food === 0 || s.water === 0 || s.hull === 0 || s.spirit === 0) {
+  const depleted = resources.filter(([key]) => s[key] === 0).map(([, label]) => label.toLowerCase());
+  if (depleted.length) {
     s.done = 'lost';
-    s.log += ' The crew can no longer safely continue.';
-  } else if (s.progress >= 19) {
+    s.ending = 'Your ' + depleted.join(' and ') + ' reached 0. The crew can no longer safely continue.';
+  } else if (s.progress >= VOYAGE_DISTANCE) {
     s.done = 'won';
-    s.log += ' Land rises on the horizon. You have reached Hawaiʻi!';
+    s.ending = 'You reached Hawaiʻi in ' + (s.day - 1) + ' turns, with your crew and canoe ready for landfall.';
   }
   render(previousProgress);
+  focusEvent();
+}
+
+function focusEvent() {
+  document.getElementById('event-title').focus({preventScroll: true});
+}
+
+function effectsMarkup(changes, intended = changes) {
+  return [...resources, ['progress', 'Travel']].filter(([key]) => intended[key] !== 0 || key === 'progress').map(([key, label]) => {
+    const value = changes[key];
+    return `<span class="effect ${value > 0 ? 'gain' : value < 0 ? 'cost' : 'neutral'}">${key === 'spirit' ? 'Spirit' : label} ${value > 0 ? '+' : value < 0 ? '−' : ''}${Math.abs(value)}</span>`;
+  }).join('');
+}
+
+function statsMarkup() {
+  return `<div class="stats" aria-label="Crew resources">${resources.map(([key, label]) => `<div class="stat ${s[key] <= 3 ? 'stat-low' : ''}" data-resource="${key}"><span>${label}</span><strong>${s[key]}<small> / ${RESOURCE_MAX}</small></strong><meter min="0" max="${RESOURCE_MAX}" low="4" high="10" optimum="15" value="${s[key]}" aria-label="${label}">${s[key]} / ${RESOURCE_MAX}</meter></div>`).join('')}</div>`;
+}
+
+function feedbackMarkup() {
+  if (!s.lastChoice) return '<aside class="feedback"><span class="eyebrow">YOUR FIRST DECISION</span><p>Read the trade-offs on each button. After you choose, discover the navigation or crew-management idea behind it.</p></aside>';
+  return `<aside class="feedback"><span class="eyebrow">LAST CHOICE · ${s.lastChoice.label}</span><p><strong>What this teaches:</strong> ${s.lastChoice.lesson}</p></aside>`;
 }
 
 function render(fromProgress) {
   if (!s) {
-    el.innerHTML = journey() + '<h2>The journey begins</h2><p class="story">You are the navigator. Every choice changes your crew’s chances of reaching a new island home.</p><button id="begin">Launch the canoe →</button>';
+    el.innerHTML = `<div class="game-layout"><div class="voyage-panel">${journey()}</div><div class="decision-panel welcome"><p class="eyebrow">A FICTIONAL LEARNING ADVENTURE</p><h2 id="event-title" tabindex="-1">The journey begins</h2><p class="story">Read the ocean, care for your crew, and guide your canoe to Hawaiʻi.</p><ul class="instructions"><li>Reach <strong>${VOYAGE_DISTANCE} travel</strong> to find land.</li><li>Keep food, water, crew spirit, and hull <strong>above 0</strong>. Each is capped at ${RESOURCE_MAX}.</li><li>Every button shows the exact changes, including the turn’s food and water use.</li></ul><button id="begin">Launch the canoe →</button></div></div>`;
     document.getElementById('begin').onclick = start;
     return;
   }
-  const e = events[(s.day - 1) % events.length];
-  el.innerHTML = journey(fromProgress) + '<div class="stats">' + [['Day', s.day], ['Food', s.food], ['Water', s.water], ['Crew spirit', s.spirit], ['Hull', s.hull], ['Distance', Math.min(100, Math.round(s.progress / 19 * 100)) + '%']].map(a => '<div class="stat">' + a[0] + '<strong>' + a[1] + '</strong></div>').join('') + '</div><h2>' + (s.done ? (s.done === 'won' ? 'Landfall!' : 'Voyage ended') : e.title) + '</h2><p class="story">' + (s.done ? s.log : e.text) + '</p><p class="message">' + (s.done ? '' : s.log) + '</p><div id="choices"></div>';
+  const event = events[(s.day - 1) % events.length];
+  el.innerHTML = `<div class="game-layout"><div class="voyage-panel">${journey(fromProgress)}${statsMarkup()}<p class="resource-guide">Keep every resource above 0. Fish for food; collect rain for water.</p></div><div class="decision-panel"><div class="event-copy"><p class="eyebrow">${s.done ? 'YOUR VOYAGE' : 'DAY ' + s.day + ' · CHOOSE YOUR NEXT MOVE'}</p><h2 id="event-title" tabindex="-1">${s.done ? (s.done === 'won' ? 'Landfall!' : 'Voyage ended') : event.title}</h2><p class="story">${s.done ? s.ending : event.text}</p></div><div id="choices"></div>${feedbackMarkup()}</div></div>`;
   const area = document.getElementById('choices');
   if (s.done) {
-    const b = document.createElement('button');
-    b.textContent = 'Voyage again ↻';
-    b.onclick = start;
-    area.append(b);
-  } else e.choices.forEach((c, i) => {
-    const b = document.createElement('button');
-    b.textContent = c[0];
-    b.onclick = () => choose(i);
-    area.append(b);
+    const button = document.createElement('button');
+    button.textContent = 'Voyage again ↻';
+    button.onclick = start;
+    area.append(button);
+  } else event.choices.forEach((choice, i) => {
+    const {next, changes} = outcome(choice);
+    const endsVoyage = resources.some(([key]) => next[key] === 0);
+    const button = document.createElement('button');
+    button.innerHTML = `<span class="choice-label">${choice.label}</span><span class="effects">${effectsMarkup(changes, choice.effects)}${endsVoyage ? '<span class="ends-voyage">Ends voyage</span>' : ''}</span>`;
+    button.onclick = () => choose(i);
+    area.append(button);
   });
 }
 render();
